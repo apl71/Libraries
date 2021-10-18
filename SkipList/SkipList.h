@@ -20,7 +20,7 @@ private:
         VALUE value;
         uint16_t level;
         Node **forward;
-    } *head_node;
+    } *head_node, *last_node;
     uint16_t max_level;
     uint16_t highest_level;
     KEY max_key;
@@ -102,7 +102,7 @@ SkipList<KEY, VALUE>::SkipList(const uint16_t max, const KEY &max_key_value)
         head_node->forward[i] = nullptr;
     }
     // 构建最后的节点
-    Node *last_node = head_node->forward[0] = new Node;
+    last_node = head_node->forward[0] = new Node;
     last_node->key = max_key;
     last_node->level = highest_level;
 }
@@ -132,6 +132,7 @@ ERR_CODE SkipList<KEY, VALUE>::Search(const KEY &key, VALUE &value) const
 template<typename KEY, typename VALUE>
 ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
 {
+    // 找到插入位置
     Node *node = nullptr;
     Node **update = new Node *[max_level];
     for (uint16_t i = 0; i < max_level; ++i)
@@ -143,6 +144,7 @@ ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
     {
         return KEY_ALREADY_EXISTS;
     }
+
     // 新建节点
     Node *new_node = new Node;
     new_node->key = key;
@@ -150,16 +152,22 @@ ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
     new_node->level = RandomLevel(p);
     new_node->forward = new Node *[max_level];
 
-    // 更新旧的forward列表
     if (new_node->level > highest_level)
     {
+        for (uint16_t i = highest_level + 1; i <= new_node->level; ++i)
+        {
+            head_node->forward[i] = last_node;
+        }
         highest_level = new_node->level;
         head_node->level = highest_level;
     }
-    for (uint16_t i = 0; i <= highest_level; ++i)
+
+    // 更新旧的forward列表
+    for (uint16_t i = 0; i <= new_node->level; ++i)
     {
-        new_node->forward[i] = update[i]->forward[i];
+        Node *tmp = update[i]->forward[i];
         update[i]->forward[i] = new_node;
+        new_node->forward[i] = tmp;
     }
 
     // 删除临时空间
@@ -192,12 +200,11 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
         // 找到下一个高度的节点
         uint16_t new_highest = highest_level;
         while (new_highest >= 0 &&
-               head_node->forward[new_highest] == to_delete &&
-               to_delete->forward[new_highest]->key == max_key)
+               head_node->forward[new_highest] == last_node)
         {
             --new_highest;
         }
-        highest_level = new_highest;
+        head_node->level = highest_level = new_highest;
     }
     // 删除节点
     delete[](to_delete->forward);
@@ -240,6 +247,7 @@ void SkipList<KEY, VALUE>::PrintAll()
         std::cout << "}" << std::endl << std::endl;
         node = node->forward[0];
     }
+    std::cout << "末端节点地址：" << node << std::endl;
 }
 
 #endif

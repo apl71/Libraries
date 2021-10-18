@@ -23,15 +23,23 @@ int main()
     SkipList<unsigned long long, string> skip_list(16, ULLONG_MAX);
 
     // 顺序键插入测试
-    for (unsigned long long key = 1; key <= 50; ++key)
+    // skip_list.PrintAll();
+    // cout << endl;
+    // cout << "========================================" << endl;
+    // cout << endl;
+    for (unsigned long long key = 1; key <= 5; ++key)
     {
         string value = RandomString(10);
         skip_list.Insert(key, value);
         cout << "插入元素：[" << "key = " << key << ", value = " << value << "]" << endl;
+        // skip_list.PrintAll();
+        // cout << endl;
+        // cout << "========================================" << endl;
+        // cout << endl;
     }
 
     // 顺序键查找测试
-    for (unsigned long long key = 1; key <= 50; ++key)
+    for (unsigned long long key = 1; key <= 5; ++key)
     {
         string value;
         ERR_CODE rst = skip_list.Search(key, value);
@@ -46,7 +54,11 @@ int main()
     }
 
     // 顺序键删除测试
-    for (unsigned long long key = 1; key <= 0; ++key)
+    skip_list.PrintAll();
+    cout << endl;
+    cout << "========================================" << endl;
+    cout << endl;
+    for (unsigned long long key = 1; key <= 5; ++key)
     {
         ERR_CODE rst = skip_list.Remove(key);
         if (rst == SUCCESS)
@@ -57,9 +69,11 @@ int main()
         {
             cout << "删除元素出错，key = " << key << endl;
         }
+        skip_list.PrintAll();
+        cout << endl;
+        cout << "========================================" << endl;
+        cout << endl;
     }
-
-    skip_list.PrintAll();
 
     return 0;
 }
