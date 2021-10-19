@@ -76,10 +76,10 @@ ERR_CODE SkipList<KEY, VALUE>::Find(const KEY &key, Node *&node, Node **pass) co
 template<typename KEY, typename VALUE>
 uint16_t SkipList<KEY, VALUE>::RandomLevel(const double p) const
 {
-    static std::default_random_engine e;
+    static std::default_random_engine e{static_cast<long unsigned int>(time(0))};
     static std::uniform_real_distribution<double> u(0, 1);
     uint16_t level = 0;
-    while (u(e) < p && level <= max_level)
+    while (u(e) < p && level < max_level)
     {
         ++level;
     }
@@ -134,8 +134,8 @@ ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
 {
     // 找到插入位置
     Node *node = nullptr;
-    Node **update = new Node *[max_level];
-    for (uint16_t i = 0; i < max_level; ++i)
+    Node **update = new Node *[max_level + 1];
+    for (uint16_t i = 0; i <= max_level; ++i)
     {
         update[i] = head_node;
     }
@@ -180,7 +180,7 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
 {
     Node *to_delete = nullptr;
     Node **update = new Node *[highest_level + 1];
-    for (uint16_t i = 0; i < max_level; ++i)
+    for (uint16_t i = 0; i <= highest_level; ++i)
     {
         update[i] = nullptr;
     }
@@ -190,7 +190,7 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
         return code;
     }
     // 更新指针
-    for (int32_t i = highest_level; i >= 0; --i)
+    for (int32_t i = to_delete->level; i >= 0; --i)
     {
         update[i]->forward[i] = to_delete->forward[i];
     }
@@ -198,13 +198,13 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
     if (to_delete->level == highest_level)
     {
         // 找到下一个高度的节点
-        uint16_t new_highest = highest_level;
+        int32_t new_highest = highest_level;
         while (new_highest >= 0 &&
                head_node->forward[new_highest] == last_node)
         {
             --new_highest;
         }
-        head_node->level = highest_level = new_highest;
+        head_node->level = highest_level = new_highest < 0 ? 0 : new_highest;
     }
     // 删除节点
     delete[](to_delete->forward);
