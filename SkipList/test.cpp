@@ -87,16 +87,16 @@ int main()
         }
         default_random_engine e2{static_cast<long unsigned int>(time(0) + 1)};
         Result skip_time = PerformenceTest(number, skip_list, keys, values, true, &e2);
-        // Result normal_time = PerformenceTest(number, list, keys, values, true, &e2);
+        Result normal_time = PerformenceTest(number, list, keys, values, true, &e2);
         cout << "跳表耗时：\t" << endl;
         cout << "\t插入：" << skip_time.insert << endl;
         cout << "\t查询：" << skip_time.insert << endl;
         cout << "\t删除：" << skip_time.insert << endl;
 
-        // cout << "普通链表耗时：\t" << endl;
-        // cout << "\t插入：" << normal_time.insert << endl;
-        // cout << "\t查询：" << normal_time.insert << endl;
-        // cout << "\t删除：" << normal_time.insert << endl;
+        cout << "普通链表耗时：\t" << endl;
+        cout << "\t插入：" << normal_time.insert << endl;
+        cout << "\t查询：" << normal_time.insert << endl;
+        cout << "\t删除：" << normal_time.insert << endl;
     }
     else if (type == '2')
     {
