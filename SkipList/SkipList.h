@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <random>
 #include <iostream>
+#include <cstring>
 
 enum ERR_CODE { SUCCESS = 1, NO_SUCH_NODE = 0, KEY_ALREADY_EXISTS = -1 };
 
@@ -95,14 +96,16 @@ SkipList<KEY, VALUE>::SkipList(const uint16_t max, const KEY &max_key_value)
     max_key = max_key_value;
     // 构建根节点
     head_node = new Node;
+    memset(head_node, 0, sizeof(Node));
     head_node->level = highest_level;
-    head_node->forward = new Node *[max_level];
-    for (uint16_t i = 0; i < max_level; ++i)
+    head_node->forward = new Node *[max_level + 1];
+    for (uint16_t i = 0; i <= max_level; ++i)
     {
         head_node->forward[i] = nullptr;
     }
     // 构建最后的节点
     last_node = head_node->forward[0] = new Node;
+    memset(last_node, 0, sizeof(Node));
     last_node->key = max_key;
     last_node->level = highest_level;
 }
@@ -142,6 +145,7 @@ ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
     ERR_CODE code = Find(key, node, update);
     if (code == SUCCESS)
     {
+        delete[]update;
         return KEY_ALREADY_EXISTS;
     }
 
@@ -150,7 +154,7 @@ ERR_CODE SkipList<KEY, VALUE>::Insert(const KEY &key, const VALUE &value)
     new_node->key = key;
     new_node->value = value;
     new_node->level = RandomLevel(p);
-    new_node->forward = new Node *[max_level];
+    new_node->forward = new Node *[max_level + 1];
 
     if (new_node->level > highest_level)
     {
@@ -187,6 +191,7 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
     ERR_CODE code = Find(key, to_delete, update);
     if (code == NO_SUCH_NODE)
     {
+        delete[]update;
         return code;
     }
     // 更新指针
@@ -209,6 +214,8 @@ ERR_CODE SkipList<KEY, VALUE>::Remove(const KEY &key)
     // 删除节点
     delete[](to_delete->forward);
     delete to_delete;
+    // 删除临时空间
+    delete[]update;
     return SUCCESS;
 }
 
@@ -216,7 +223,7 @@ template<typename KEY, typename VALUE>
 void SkipList<KEY, VALUE>::Clear()
 {
     Node *node = head_node;
-    while (node && node->key != max_key)
+    while (node && node != last_node)
     {
         Node *tmp = node->forward[0];
         delete[](node->forward);
